@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">My Application</string>
+    <string name="button_text">Button</string>
+    <string name="bluetooth_server_scan">Scan</string>
+</resources>
