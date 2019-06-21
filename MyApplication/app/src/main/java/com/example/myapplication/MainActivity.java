@@ -16,7 +16,13 @@ public class MainActivity extends AppCompatActivity {
 //        final Button button=findViewById(R.id.button);
     }
     int counter=0;
-    void buttonOnClick(View view){
+    void clientButtonOnClick(View view){
+        Button button=(Button)view;
+        button.setText("clicked #"+Integer.toString(++counter));
+        Intent intent=new Intent(this, BluetoothClient.class);
+        startActivity(intent);
+    }
+    void serverButtonOnClick(View view){
         Button button=(Button)view;
         button.setText("clicked #"+Integer.toString(++counter));
         Intent intent=new Intent(this, BluetoothServer.class);

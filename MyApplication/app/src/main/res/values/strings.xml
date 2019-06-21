@@ -1,5 +1,8 @@
 <resources>
     <string name="app_name">My Application</string>
-    <string name="button_text">Button</string>
-    <string name="bluetooth_server_scan">Scan</string>
+    <string name="launch_client_button">Client</string>
+    <string name="launch_server_button">Server</string>
+    <string name="bluetooth_client_scan">Scan</string>
+    <string name="bluetooth_server_listen">Listen</string>
+    <string name="bluetooth_service_uuid">ff1477c2-7265-4d55-bb08-c3c32c6d635c</string>
 </resources>

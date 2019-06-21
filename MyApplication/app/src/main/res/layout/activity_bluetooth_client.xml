@@ -4,14 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".BluetoothServer">
+    tools:context=".BluetoothClient">
 
     <Button
-        android:id="@+id/server_button"
+        android:id="@+id/client_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:onClick="onButtonClick"
-        android:text="@string/bluetooth_server_listen"
+        android:text="@string/bluetooth_client_scan"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -33,7 +33,7 @@
         app:layout_constraintBottom_toTopOf="@+id/scrollView2"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/server_button" />
+        app:layout_constraintTop_toBottomOf="@+id/client_button" />
 
     <ScrollView
         android:id="@+id/scrollView2"
