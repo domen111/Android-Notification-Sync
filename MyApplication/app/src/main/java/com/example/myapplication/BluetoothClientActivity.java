@@ -15,7 +15,7 @@ import android.content.*;
 import android.view.*;
 import android.widget.*;
 
-public class BluetoothClient extends AppCompatActivity {
+public class BluetoothClientActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

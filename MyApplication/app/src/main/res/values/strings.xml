@@ -5,4 +5,5 @@
     <string name="bluetooth_client_scan">Scan</string>
     <string name="bluetooth_server_listen">Listen</string>
     <string name="bluetooth_service_uuid">ff1477c2-7265-4d55-bb08-c3c32c6d635c</string>
+    <string name="send_button_text">Send</string>
 </resources>

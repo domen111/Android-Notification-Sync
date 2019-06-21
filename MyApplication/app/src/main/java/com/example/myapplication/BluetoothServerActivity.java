@@ -14,7 +14,7 @@ import androidx.core.app.ActivityCompat;
 import java.io.IOException;
 import java.util.*;
 
-public class BluetoothServer extends AppCompatActivity {
+public class BluetoothServerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
