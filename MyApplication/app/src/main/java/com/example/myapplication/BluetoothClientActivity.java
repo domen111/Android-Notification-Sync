@@ -2,6 +2,8 @@ package com.example.myapplication;
 
 //import java.util.concurrent.*;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.*;
 import java.lang.*;
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,11 +25,27 @@ public class BluetoothClientActivity extends AppCompatActivity {
         setContentView(R.layout.activity_bluetooth_client);
         editText=findViewById(R.id.editText);
         linearLayout=findViewById(R.id.linearLayout);
+        setOnSendButtonClick();
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothDevice.ACTION_FOUND);
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         registerReceiver(receiver, filter);
+    }
+    void setOnSendButtonClick(){
+        Button sendButton=findViewById(R.id.button3);
+        sendButton.setOnClickListener(new Button.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                String text=((EditText)BluetoothClientActivity.this.findViewById(R.id.editText3)).getText().toString();
+                showToast("you typed: "+text);
+                try{
+                    outStream.write(text.getBytes("UTF-8"));
+                }catch (IOException e){
+                    showToast("cannot write to outStream");
+                }
+            }
+        });
     }
     EditText editText;
     LinearLayout linearLayout;
@@ -133,6 +151,18 @@ public class BluetoothClientActivity extends AppCompatActivity {
             return;
         }
         showToast("successfully connect to "+device.getAddress());
+        manageConnection(socket);
+    }
+    InputStream inStream =null;
+    OutputStream outStream =null;
+    void manageConnection(BluetoothSocket socket){
+        try{
+            inStream =socket.getInputStream();
+            outStream =socket.getOutputStream();
+        }catch (IOException e){
+            showToast("cannot get input or output stream");
+            return;
+        }
     }
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {

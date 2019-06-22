@@ -11,7 +11,7 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 public class BluetoothServerActivity extends AppCompatActivity {
@@ -21,6 +21,56 @@ public class BluetoothServerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_bluetooth_server);
         editText=findViewById(R.id.editText);
         linearLayout=findViewById(R.id.linearLayout);
+        setOnSendButtonClick();
+        readInStream();
+    }
+    void setOnSendButtonClick(){
+        Button sendButton=findViewById(R.id.button2);
+        sendButton.setOnClickListener(new Button.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                String text=((EditText)BluetoothServerActivity.this.findViewById(R.id.editText2)).getText().toString();
+                showToast("you typed: "+text);
+                try{
+                    outStream.write(text.getBytes("UTF-8"));
+                }catch (IOException e){
+                    showToast("cannot write to outStream");
+                }
+            }
+        });
+    }
+    void readInStream(){
+        new Thread(){
+            @Override
+            public void run(){
+                byte[]buffer=new byte[1024];
+                while(true){
+                    if(inStream==null){
+                        try {
+                            Thread.sleep(100);
+                        }catch (InterruptedException e){}
+                        continue;
+                    }
+                    int sz=0;
+                    try{
+                        sz=inStream.read(buffer);
+                    }catch (IOException e){
+                        showToast("cannot read from inStream");
+                    }
+                    if(sz!=0){
+                        String str=null;
+                        try {
+                            str = new String(buffer, "UTF-8");
+                        }catch (UnsupportedEncodingException e){
+                            showToast("unsupported encoding exception");
+                        }
+                        if(str!=null){
+                            showToast("received: "+str);
+                        }
+                    }
+                }
+            }
+        }.start();
     }
     EditText editText;
     LinearLayout linearLayout;
@@ -80,6 +130,8 @@ public class BluetoothServerActivity extends AppCompatActivity {
             }
         }.start();
     }
+    InputStream inStream =null;
+    OutputStream outStream =null;
     void connectAsServerNaive(){
         BluetoothServerSocket serverSocket=null;
         try{
@@ -99,6 +151,8 @@ public class BluetoothServerActivity extends AppCompatActivity {
             if(socket!=null){
                 try {
                     serverSocket.close();
+                    inStream=socket.getInputStream();
+                    outStream=socket.getOutputStream();
                     showToast("server socket closed.");
                 }
                 catch (Exception e){
