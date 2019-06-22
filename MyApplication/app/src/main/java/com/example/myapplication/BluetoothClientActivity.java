@@ -1,9 +1,7 @@
 package com.example.myapplication;
 
 //import java.util.concurrent.*;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.*;
 import java.lang.*;
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,6 +24,7 @@ public class BluetoothClientActivity extends AppCompatActivity {
         editText=findViewById(R.id.editText);
         linearLayout=findViewById(R.id.linearLayout);
         setOnSendButtonClick();
+        readInStream();
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothDevice.ACTION_FOUND);
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
@@ -37,7 +36,9 @@ public class BluetoothClientActivity extends AppCompatActivity {
         sendButton.setOnClickListener(new Button.OnClickListener(){
             @Override
             public void onClick(View view){
-                String text=((EditText)BluetoothClientActivity.this.findViewById(R.id.editText3)).getText().toString();
+                EditText txtBox=BluetoothClientActivity.this.findViewById(R.id.editText3);
+                String text=txtBox.getText().toString();
+                txtBox.setText("");
                 showToast("you typed: "+text);
                 try{
                     outStream.write(text.getBytes("UTF-8"));
@@ -46,6 +47,39 @@ public class BluetoothClientActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+    void readInStream(){
+        new Thread(){
+            @Override
+            public void run(){
+                byte[]buffer=new byte[1024];
+                while(true){
+                    if(inStream==null){
+                        try {
+                            Thread.sleep(100);
+                        }catch (InterruptedException e){}
+                        continue;
+                    }
+                    int sz=0;
+                    try{
+                        sz=inStream.read(buffer);
+                    }catch (IOException e){
+                        showToast("cannot read from inStream");
+                    }
+                    if(sz!=0){
+                        String str=null;
+                        try {
+                            str = new String(buffer, "UTF-8");
+                        }catch (UnsupportedEncodingException e){
+                            showToast("unsupported encoding exception");
+                        }
+                        if(str!=null){
+                            showToast("received: "+str);
+                        }
+                    }
+                }
+            }
+        }.start();
     }
     EditText editText;
     LinearLayout linearLayout;

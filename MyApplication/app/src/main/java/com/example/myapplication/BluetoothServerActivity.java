@@ -29,7 +29,9 @@ public class BluetoothServerActivity extends AppCompatActivity {
         sendButton.setOnClickListener(new Button.OnClickListener(){
             @Override
             public void onClick(View view){
-                String text=((EditText)BluetoothServerActivity.this.findViewById(R.id.editText2)).getText().toString();
+                EditText txtBox=BluetoothServerActivity.this.findViewById(R.id.editText2);
+                String text=txtBox.getText().toString();
+                txtBox.setText("");
                 showToast("you typed: "+text);
                 try{
                     outStream.write(text.getBytes("UTF-8"));
