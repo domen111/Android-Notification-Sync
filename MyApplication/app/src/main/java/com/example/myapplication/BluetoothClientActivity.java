@@ -51,10 +51,10 @@ public class BluetoothClientActivity extends AppCompatActivity {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
         } else {
-            queryPqiredDevices();
+            queryPairedDevices();
         }
     }
-    void queryPqiredDevices(){
+    void queryPairedDevices(){
         showToast("query pairs...");
         Set<BluetoothDevice>pairedDevices=bluetoothAdapter.getBondedDevices();
         showToast(pairedDevices.size()+" paired devices.");
@@ -163,7 +163,7 @@ public class BluetoothClientActivity extends AppCompatActivity {
                 finish();
             }else{
                 showToast("bluetooth enabled");
-                queryPqiredDevices();
+                queryPairedDevices();
             }
         }
     }
