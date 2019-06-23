@@ -32,7 +32,7 @@ public class NotificationListener extends NotificationListenerService {
         int res = super.onStartCommand(intent, flags, startId);
         String macAddress = intent.getStringExtra("macAddress");
         Log.i(TAG, macAddress);
-//        connectAsClient(macAddress);
+        connectAsClient(macAddress);
         return res;
     }
 
@@ -52,20 +52,20 @@ public class NotificationListener extends NotificationListenerService {
         final PackageManager pm = getApplicationContext().getPackageManager();
         String applicationName;
         try {
-            ApplicationInfo ai = pm.getApplicationInfo( sbn.getPackageName(), 0);
-            applicationName = (String)pm.getApplicationLabel(ai);
+            ApplicationInfo ai = pm.getApplicationInfo(sbn.getPackageName(), 0);
+            applicationName = (String) pm.getApplicationLabel(ai);
         } catch (final PackageManager.NameNotFoundException e) {
             applicationName = "";
         }
         Log.i(TAG, applicationName);
 
 
-//        try{
-//            String text = applicationName + sbn.getNotification().tickerText;
-//            outStream.write(text.getBytes("UTF-8"));
-//        }catch (IOException e){
-//            Log.i(TAG, "cannot write to outStream");
-//        }
+        try {
+            String text = applicationName + sbn.getNotification().tickerText;
+            outStream.write(text.getBytes("UTF-8"));
+        } catch (IOException e) {
+            Log.i(TAG, "cannot write to outStream");
+        }
     }
 
     @Override
@@ -74,64 +74,50 @@ public class NotificationListener extends NotificationListenerService {
         Log.i(TAG, "ID :" + sbn.getId() + "\t" + sbn.getNotification().tickerText + "\t" + sbn.getPackageName());
     }
 
-    public String getNotifications() {
-        return getActiveNotifications()[0].toString();
+    private BluetoothAdapter bluetoothAdapter;
+
+    void connectAsClient(final String serverMacAddress) {
+        Log.i(TAG, "connect as client");
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        BluetoothDevice device = bluetoothAdapter.getRemoteDevice(serverMacAddress);
+        connectAsClient(device);
     }
 
+    void connectAsClient(BluetoothDevice device) {
+        Log.i(TAG, device.getName() + " (" + device.getAddress() + ")");
+        BluetoothSocket socket = null;
+        try {
+            Log.i(TAG, UUID.randomUUID().toString());
+            socket = device.createRfcommSocketToServiceRecord(UUID.fromString(getString(R.string.bluetooth_service_uuid)));
+        } catch (IOException e) {
+            Log.i(TAG, "failed to create socket.");
+            return;
+        }
+        bluetoothAdapter.cancelDiscovery();
+        try {
+            socket.connect();
+        } catch (IOException connectException) {
+            Log.i(TAG, "cannot connect.");
+            try {
+                socket.close();
+            } catch (IOException closeException) {
+                Log.i(TAG, "cannot close the client socket.");
+            }
+            return;
+        }
+        Log.i(TAG, "successfully connect to " + device.getAddress());
+        manageConnection(socket);
+    }
 
+    InputStream inStream = null;
+    OutputStream outStream = null;
 
-
-
-
-//    private BluetoothAdapter bluetoothAdapter;
-//    void connectAsClient(final String macAddress){
-//        Log.i(TAG, "connect as client");
-//        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-//        BluetoothDevice device = bluetoothAdapter.getRemoteDevice(macAddress);
-//        connectAsClient(device);
-//    }
-//    void connectAsClient(final BluetoothDevice device){
-//        new Thread(){
-//            @Override
-//            public void run(){
-//                connectAsClientNaive(device);
-//            }
-//        }.start();
-//    }
-//    void connectAsClientNaive(BluetoothDevice device){
-//        Log.i(TAG, device.getName()+" ("+device.getAddress()+")");
-//        BluetoothSocket socket=null;
-//        try {
-//            Log.i(TAG, UUID.randomUUID().toString());
-//            socket = device.createRfcommSocketToServiceRecord(UUID.fromString(getString(R.string.bluetooth_service_uuid)));
-//        } catch (IOException e) {
-//            Log.i(TAG, "failed to create socket.");
-//            return;
-//        }
-//        bluetoothAdapter.cancelDiscovery();
-//        try{
-//            socket.connect();
-//        } catch (IOException connectException) {
-//            Log.i(TAG, "cannot connect.");
-//            try {
-//                socket.close();
-//            } catch (IOException closeException) {
-//                Log.i(TAG, "cannot close the client socket.");
-//            }
-//            return;
-//        }
-//        Log.i(TAG, "successfully connect to "+device.getAddress());
-//        manageConnection(socket);
-//    }
-//    InputStream inStream =null;
-//    OutputStream outStream =null;
-//    void manageConnection(BluetoothSocket socket){
-//        try{
-//            inStream =socket.getInputStream();
-//            outStream =socket.getOutputStream();
-//        }catch (IOException e){
-//            Log.i(TAG, "cannot get input or output stream");
-//            return;
-//        }
-//    }
+    void manageConnection(BluetoothSocket socket) {
+        try {
+            inStream = socket.getInputStream();
+            outStream = socket.getOutputStream();
+        } catch (IOException e) {
+            Log.i(TAG, "cannot get input or output stream");
+        }
+    }
 }
