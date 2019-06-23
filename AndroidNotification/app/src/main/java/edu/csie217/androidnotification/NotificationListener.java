@@ -11,9 +11,14 @@ import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 
@@ -45,9 +50,8 @@ public class NotificationListener extends NotificationListenerService {
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
-        Log.i(TAG, "**********  onNotificationPosted");
-        Log.i(TAG, "ID :" + sbn.getId() + "\t" + sbn.getNotification().tickerText + "\t" + sbn.getPackageName());
-        Log.i(TAG, sbn.getNotification().extras.getString("android.title"));
+        Log.i(TAG, "onNotificationPosted");
+        String content = sbn.getNotification().tickerText.toString();
 
         final PackageManager pm = getApplicationContext().getPackageManager();
         String applicationName;
@@ -57,21 +61,26 @@ public class NotificationListener extends NotificationListenerService {
         } catch (final PackageManager.NameNotFoundException e) {
             applicationName = "";
         }
+
+        Log.i(TAG, content);
         Log.i(TAG, applicationName);
 
 
+        JSONObject jsonData = new JSONObject();
         try {
-            String text = applicationName + sbn.getNotification().tickerText;
+            jsonData.put("title", "");
+            jsonData.put("content", content);
+            jsonData.put("app_name", applicationName);
+        } catch (JSONException e) {
+            Log.e(TAG, "json error");
+            return;
+        }
+        try {
+            String text = jsonData.toString();
             outStream.write(text.getBytes("UTF-8"));
         } catch (IOException e) {
             Log.i(TAG, "cannot write to outStream");
         }
-    }
-
-    @Override
-    public void onNotificationRemoved(StatusBarNotification sbn) {
-        Log.i(TAG, "********** onNOtificationRemoved");
-        Log.i(TAG, "ID :" + sbn.getId() + "\t" + sbn.getNotification().tickerText + "\t" + sbn.getPackageName());
     }
 
     private BluetoothAdapter bluetoothAdapter;
