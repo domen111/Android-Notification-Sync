@@ -31,6 +31,7 @@ import android.widget.Toast;
 import java.sql.Struct;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -39,6 +40,7 @@ public class BluetoothScanActivity extends AppCompatActivity {
     private String TAG = this.getClass().getSimpleName();
     List<String> devicesMacAddress = new ArrayList<>();
     ArrayAdapter<String> deviceListAdapter;
+    Set<String> pairedDevicesMacSet, devicesMacSet = new HashSet<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,21 +98,20 @@ public class BluetoothScanActivity extends AppCompatActivity {
     }
 
     public void scanFabOnClick(View view) {
-        Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show();
+        deviceListAdapter.clear();
+        devicesMacAddress.clear();
+        devicesMacSet.clear();
+        showToast("Start scanning bluetooth devices");
         if (checkAndEnableBluetooth()) {
             scanAllDevices();
         }
     }
 
-    void showToast(final String text) {
+    private void showToast(final String text) {
         final Activity thisActivity = this;
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast toast = Toast.makeText(thisActivity, text, Toast.LENGTH_SHORT);
-                toast.show();
-            }
+        runOnUiThread(() -> {
+            Toast toast = Toast.makeText(thisActivity, text, Toast.LENGTH_SHORT);
+            toast.show();
         });
     }
 
@@ -135,12 +136,12 @@ public class BluetoothScanActivity extends AppCompatActivity {
         }
     }
 
-    void scanAllDevices() {
+    private void scanAllDevices() {
         queryPairedDevices();
         startDiscovery();
     }
 
-    void queryPairedDevices() {
+    private void queryPairedDevices() {
         Log.i(TAG, "query pairs...");
         Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
         if (pairedDevices == null) {
@@ -148,25 +149,23 @@ public class BluetoothScanActivity extends AppCompatActivity {
             return;
         }
         Log.i(TAG, pairedDevices.size() + " paired devices.");
+        pairedDevicesMacSet = new HashSet<>();
         for (BluetoothDevice device : pairedDevices) {
-            addDevice(device);
+            pairedDevicesMacSet.add(device.getAddress());
         }
     }
 
-    void startDiscovery() {
-        showToast("discovering...");
+    private void startDiscovery() {
         bluetoothAdapter.cancelDiscovery();
         requestBluetoothPermission();
         if (!bluetoothAdapter.startDiscovery()) {
             showToast("discovery failed");
             finish();
-        } else {
-            showToast("discovery success");
         }
     }
 
     // https://stackoverflow.com/questions/34966133/android-bluetooth-discovery-doesnt-find-any-device
-    void requestBluetoothPermission() {
+    private void requestBluetoothPermission() {
         int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 1;
         ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
@@ -182,34 +181,25 @@ public class BluetoothScanActivity extends AppCompatActivity {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 addDevice(device);
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-                showToast("discovery finished.");
+                Log.i(TAG, "discovery finished.");
             } else if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
-                showToast("discovery started.");
+                Log.i(TAG, "discovery started.");
             }
         }
     };
 
-    void addDevice(final BluetoothDevice device) {
+    private void addDevice(final BluetoothDevice device) {
         String deviceName = device.getName();
         String deviceHardwareAddress = device.getAddress();
         if (deviceName == null)
             return;
+        if (devicesMacSet.contains(deviceHardwareAddress))
+            return;
+        devicesMacSet.add(deviceHardwareAddress);
+        if (pairedDevicesMacSet.contains(deviceHardwareAddress))
+            deviceName += " (paired)";
         devicesMacAddress.add(deviceHardwareAddress);
         deviceListAdapter.add(deviceName);
-//        Button button = new Button(this);
-//        button.setText(deviceName + ": " + deviceHardwareAddress);
-//        button.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Button b = (Button) view;
-//                //connectAsClient(device);
-//                String macAddress = device.getAddress();
-//                Intent intent = new Intent(BluetoothScanActivity.this, NotificationListener.class);
-//                intent.putExtra("macAddress", macAddress);
-//                startService(intent);
-//            }
-//        });
-//        linearLayout.addView(button);
     }
 
     @Override

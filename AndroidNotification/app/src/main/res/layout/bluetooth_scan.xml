@@ -37,14 +37,16 @@
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/scan_fab"
-        android:text="@string/scan_fab_text"
-        android:onClick="scanFabOnClick"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/fab_margin"
+        android:onClick="scanFabOnClick"
+        android:text="@string/scan_fab_text"
+        app:fabSize="auto"
         app:layout_anchor="@id/app_bar"
         app:layout_anchorGravity="bottom|end"
-        app:srcCompat="@android:drawable/ic_menu_search" />
+        app:srcCompat="@android:drawable/ic_menu_search"
+        app:useCompatPadding="false" />
 
 
 

@@ -1,5 +1,6 @@
 package edu.csie217.androidnotification;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -10,6 +11,7 @@ import android.provider.Settings;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -25,6 +27,11 @@ import java.util.UUID;
 public class NotificationListener extends NotificationListenerService {
 
     private String TAG = this.getClass().getSimpleName();
+
+    private void showToast(final String text) {
+        Toast toast = Toast.makeText(this, text, Toast.LENGTH_SHORT);
+        toast.show();
+    }
 
     @Override
     public void onCreate() {
@@ -83,6 +90,9 @@ public class NotificationListener extends NotificationListenerService {
         }
     }
 
+    @Override
+    public void onNotificationRemoved(StatusBarNotification sbn) {}
+
     private BluetoothAdapter bluetoothAdapter;
 
     void connectAsClient(final String serverMacAddress) {
@@ -94,12 +104,14 @@ public class NotificationListener extends NotificationListenerService {
 
     void connectAsClient(BluetoothDevice device) {
         Log.i(TAG, device.getName() + " (" + device.getAddress() + ")");
+        showToast("Try to connect to device: " + device.getName());
         BluetoothSocket socket = null;
         try {
             Log.i(TAG, UUID.randomUUID().toString());
             socket = device.createRfcommSocketToServiceRecord(UUID.fromString(getString(R.string.bluetooth_service_uuid)));
         } catch (IOException e) {
             Log.i(TAG, "failed to create socket.");
+            showToast("Connection failed");
             return;
         }
         bluetoothAdapter.cancelDiscovery();
@@ -107,6 +119,7 @@ public class NotificationListener extends NotificationListenerService {
             socket.connect();
         } catch (IOException connectException) {
             Log.i(TAG, "cannot connect.");
+            showToast("Connection failed");
             try {
                 socket.close();
             } catch (IOException closeException) {
@@ -115,6 +128,7 @@ public class NotificationListener extends NotificationListenerService {
             return;
         }
         Log.i(TAG, "successfully connect to " + device.getAddress());
+        showToast("Successfully connect to: " + device.getName());
         manageConnection(socket);
     }
 
@@ -126,6 +140,7 @@ public class NotificationListener extends NotificationListenerService {
             inStream = socket.getInputStream();
             outStream = socket.getOutputStream();
         } catch (IOException e) {
+            showToast("Bluetooth connection error");
             Log.i(TAG, "cannot get input or output stream");
         }
     }
