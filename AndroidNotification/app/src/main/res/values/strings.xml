@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Android Notification</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_test">TestActivity</string>
+    <string name="scan_fab_text">Scan</string>
+    <string name="bluetooth_service_uuid">ff1477c2-7265-4d55-bb08-c3c32c6d635c</string>
+    <string name="service_name">Android Notification Sync</string>
+</resources>
