@@ -1,6 +1,5 @@
 package edu.csie217.androidnotification;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -19,11 +18,15 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 
+/**
+ * The service is used for receiving android notification.
+ * The activity should tell this service the bluetooth device mac address. And it will try to
+ * connect to the device. It bluetooth is connected, it will send a packet to paired device
+ * when a notification is shown on the phone.
+ */
 public class NotificationListener extends NotificationListenerService {
 
     private String TAG = this.getClass().getSimpleName(); // Log.i(TAG, "LOG")
@@ -75,6 +78,7 @@ public class NotificationListener extends NotificationListenerService {
         Log.i(TAG, "onNotificationPosted");
         String content = sbn.getNotification().tickerText.toString();
 
+        // Get app name
         final PackageManager pm = getApplicationContext().getPackageManager();
         String applicationName;
         try {
@@ -88,6 +92,7 @@ public class NotificationListener extends NotificationListenerService {
         Log.i(TAG, applicationName);
 
 
+        // encode as a json string
         JSONObject jsonData = new JSONObject();
         try {
             jsonData.put("title", "");
