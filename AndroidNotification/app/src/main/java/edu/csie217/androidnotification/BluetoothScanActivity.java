@@ -35,12 +35,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * The main activity of our app. This activity in control of managing bluetooth connection.
+ */
 public class BluetoothScanActivity extends AppCompatActivity {
 
-    private String TAG = this.getClass().getSimpleName();
-    List<String> devicesMacAddress = new ArrayList<>();
-    ArrayAdapter<String> deviceListAdapter;
-    Set<String> pairedDevicesMacSet, devicesMacSet = new HashSet<>();
+    private String TAG = this.getClass().getSimpleName(); // Log.i(TAG, "LOG")
+    private List<String> devicesMacAddress = new ArrayList<>();
+    private ArrayAdapter<String> deviceListAdapter;
+    private Set<String> pairedDevicesMacSet, devicesMacSet = new HashSet<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +59,7 @@ public class BluetoothScanActivity extends AppCompatActivity {
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         registerReceiver(bluetoothDiscoveringReceiver, filter);
 
+        // set up device ListView
         ListView deviceListView = findViewById(R.id.deviceList);
         deviceListAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1);
         deviceListView.setAdapter(deviceListAdapter);
@@ -64,6 +68,7 @@ public class BluetoothScanActivity extends AppCompatActivity {
                                                int position,
                                                long l) -> {
             String macAddress = devicesMacAddress.get(position);
+            // tell the service to connect to the device
             Intent intent = new Intent(BluetoothScanActivity.this, NotificationListener.class);
             intent.putExtra("macAddress", macAddress);
             startService(intent);
@@ -90,13 +95,17 @@ public class BluetoothScanActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
+        // noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Start scanning bluetooth devices.
+     * @param view
+     */
     public void scanFabOnClick(View view) {
         deviceListAdapter.clear();
         devicesMacAddress.clear();
@@ -107,6 +116,10 @@ public class BluetoothScanActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * A simple tool to show information to user.
+     * @param text The text to be shown.
+     */
     private void showToast(final String text) {
         final Activity thisActivity = this;
         runOnUiThread(() -> {
@@ -117,8 +130,12 @@ public class BluetoothScanActivity extends AppCompatActivity {
 
 
     private static final int REQUEST_ENABLE_BT = 2;
-    BluetoothAdapter bluetoothAdapter;
+    private BluetoothAdapter bluetoothAdapter;
 
+    /**
+     * Check if the bluetooth is available. If it is not available, try to enable it.
+     * @return Is bluetooth enabled
+     */
     private boolean checkAndEnableBluetooth() {
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (bluetoothAdapter == null) {
@@ -136,11 +153,17 @@ public class BluetoothScanActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * scan bluetooth devices
+     */
     private void scanAllDevices() {
         queryPairedDevices();
         startDiscovery();
     }
 
+    /**
+     * Find out the paired devices.
+     */
     private void queryPairedDevices() {
         Log.i(TAG, "query pairs...");
         Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
@@ -155,6 +178,9 @@ public class BluetoothScanActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Bluetooth discovery
+     */
     private void startDiscovery() {
         bluetoothAdapter.cancelDiscovery();
         requestBluetoothPermission();
@@ -164,7 +190,10 @@ public class BluetoothScanActivity extends AppCompatActivity {
         }
     }
 
-    // https://stackoverflow.com/questions/34966133/android-bluetooth-discovery-doesnt-find-any-device
+    /**
+     * Request for bluetooth permission: ACCESS_COARSE_LOCATION
+     * https://stackoverflow.com/questions/34966133/android-bluetooth-discovery-doesnt-find-any-device
+     */
     private void requestBluetoothPermission() {
         int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 1;
         ActivityCompat.requestPermissions(this,
@@ -172,6 +201,9 @@ public class BluetoothScanActivity extends AppCompatActivity {
                 MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION);
     }
 
+    /**
+     * Receiver for discovered devices.
+     */
     private final BroadcastReceiver bluetoothDiscoveringReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
@@ -188,6 +220,12 @@ public class BluetoothScanActivity extends AppCompatActivity {
         }
     };
 
+    /**
+     * Add a bluetooth to the list.
+     * Ignore the decive if it has no name.
+     * If the device is already paired. Show `(paired)`
+     * @param device the bluetooth device
+     */
     private void addDevice(final BluetoothDevice device) {
         String deviceName = device.getName();
         String deviceHardwareAddress = device.getAddress();
@@ -202,6 +240,9 @@ public class BluetoothScanActivity extends AppCompatActivity {
         deviceListAdapter.add(deviceName);
     }
 
+    /**
+     * The callback for requesting bluetooth permission.
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_ENABLE_BT) {

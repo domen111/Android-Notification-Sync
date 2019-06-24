@@ -26,8 +26,12 @@ import java.util.UUID;
 
 public class NotificationListener extends NotificationListenerService {
 
-    private String TAG = this.getClass().getSimpleName();
+    private String TAG = this.getClass().getSimpleName(); // Log.i(TAG, "LOG")
 
+    /**
+     * A simple tool to show information to user.
+     * @param text The text to be shown.
+     */
     private void showToast(final String text) {
         Toast toast = Toast.makeText(this, text, Toast.LENGTH_SHORT);
         toast.show();
@@ -39,6 +43,10 @@ public class NotificationListener extends NotificationListenerService {
         Log.i(TAG, "notificationListenerEnable = " + notificationListenerEnabled());
     }
 
+    /**
+     * This is the callback for the intent from the BluetoothScanActivity.
+     * It will try to connect to the designated device.
+     */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         int res = super.onStartCommand(intent, flags, startId);
@@ -48,6 +56,10 @@ public class NotificationListener extends NotificationListenerService {
         return res;
     }
 
+    /**
+     * Check whether it has the required permission.
+     * @return whether it has the notification listener permission.
+     */
     private boolean notificationListenerEnabled() {
         String flat = Settings.Secure.getString(getContentResolver(),
                 "enabled_notification_listeners");
@@ -55,6 +67,9 @@ public class NotificationListener extends NotificationListenerService {
         return flat.contains(getClass().getName());
     }
 
+    /**
+     * If there's an android notification being posted, the method will be called.
+     */
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
         Log.i(TAG, "onNotificationPosted");
@@ -90,19 +105,29 @@ public class NotificationListener extends NotificationListenerService {
         }
     }
 
+    /**
+     * If there's an android notification being removed, the method will be called.
+     */
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {}
 
     private BluetoothAdapter bluetoothAdapter;
 
-    void connectAsClient(final String serverMacAddress) {
+    /**
+     * Try to connect to the device as bluetooth client.
+     * @param serverMacAddress the device mac address
+     */
+    private void connectAsClient(final String serverMacAddress) {
         Log.i(TAG, "connect as client");
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         BluetoothDevice device = bluetoothAdapter.getRemoteDevice(serverMacAddress);
         connectAsClient(device);
     }
 
-    void connectAsClient(BluetoothDevice device) {
+    /**
+     * Try to connect to the device as bluetooth client.
+     */
+    private void connectAsClient(BluetoothDevice device) {
         Log.i(TAG, device.getName() + " (" + device.getAddress() + ")");
         showToast("Try to connect to device: " + device.getName());
         BluetoothSocket socket = null;
@@ -132,10 +157,14 @@ public class NotificationListener extends NotificationListenerService {
         manageConnection(socket);
     }
 
-    InputStream inStream = null;
-    OutputStream outStream = null;
+    // These variables are used for bluetooth sending & receiving data
+    private InputStream inStream = null;
+    private OutputStream outStream = null;
 
-    void manageConnection(BluetoothSocket socket) {
+    /**
+     * Set up `inStream` and `outStream`
+     */
+    private void manageConnection(BluetoothSocket socket) {
         try {
             inStream = socket.getInputStream();
             outStream = socket.getOutputStream();
