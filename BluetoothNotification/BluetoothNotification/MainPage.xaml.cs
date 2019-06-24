@@ -18,6 +18,7 @@ using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.Rfcomm;
 using Windows.Networking.Sockets;
 using System.Diagnostics;
+using Newtonsoft.Json;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -29,14 +30,14 @@ namespace BluetoothNotification
     public sealed partial class MainPage : Page
     {
         Button button_notification = new Button {Content="notification" };
-        TextBox txb = new TextBox { };
+        TextBox txb = new TextBox { AcceptsReturn = true };
         void InitializeViews()
         {
             this.Content = new Grid
             {
                 RowDefinitions =
                 {
-                    new RowDefinition { Height = new GridLength(1, GridUnitType.Star) },
+                    new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) },
                     new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }
                 },
                 Children =
@@ -45,6 +46,15 @@ namespace BluetoothNotification
                     txb.Set(1,0)
                 }
             };
+        }
+        async void Log(string text)
+        {
+            var action = new Action(() =>
+              {
+                  txb.Text += $"{text}\n";
+              });
+            if (Dispatcher.HasThreadAccess) action();
+            else await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => action());
         }
         void RegisterEvents()
         {
@@ -100,18 +110,22 @@ namespace BluetoothNotification
             }
             catch (Exception error)
             {
-                Debug.WriteLine(error.ToString());
+                Log(error.ToString());
             }
+        }
+        class NotificationData
+        {
+            public string app_name, title, content;
         }
         async void OnConnectionReceived(StreamSocketListener listener,StreamSocketListenerConnectionReceivedEventArgs args)
         {
             try
             {
-                Debug.WriteLine("Received.");
+                Log("Accepted.");
                 provider.StopAdvertising();
                 await listener.CancelIOAsync();
                 StreamSocket socket = args.Socket;
-                Debug.WriteLine("Start connection.");
+                Log("Start connection.");
                 var input_stream = socket.InputStream;
                 while (true)
                 {
@@ -119,13 +133,14 @@ namespace BluetoothNotification
                     var n =await input_stream.ReadAsync(buffer, buffer.Capacity, Windows.Storage.Streams.InputStreamOptions.Partial);
                     byte[] bytes = buffer.ToArray();
                     String text = System.Text.Encoding.UTF8.GetString(bytes, 0, (int)n.Length);
-                    Debug.WriteLine($"Received: {text}");
-                    ShowNotification("app_name", "title", text);
+                    Log($"Received: {text}");
+                    var notificationData= JsonConvert.DeserializeObject<NotificationData>(text);
+                    ShowNotification(notificationData.app_name, notificationData.title, notificationData.content);
                 }
             }
             catch(Exception error)
             {
-                Debug.WriteLine(error.ToString());
+                Log(error.ToString());
             }
         }
         public MainPage()
@@ -134,7 +149,7 @@ namespace BluetoothNotification
             InitializeViews();
             RegisterEvents();
             InitializeBluetooth();
-            txb.Text += "Initialized.\n";
+            Log("Initialized.");
         }
     }
 }
